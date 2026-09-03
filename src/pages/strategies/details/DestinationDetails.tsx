@@ -23,17 +23,20 @@ import {
 } from '@helpers/destinations';
 import { PostPurchaseOptions } from '@models/PostPurchaseOptions';
 import { generateStrategyConfigureUrl } from '@components/TopPanel/generateStrategyConfigureUrl';
-import { isStrategyCancelled, getStrategyResultingDenom } from '@helpers/strategy';
+import { getStrategyResultingDenom, isStrategyCancelled } from '@helpers/strategy';
 import useStrategy from '@hooks/useStrategy';
 import useValidator from '@hooks/useValidator';
 import { HiOutlineCube } from 'react-icons/hi';
 import LinkWithQuery from '@components/LinkWithQuery';
 import { ChainId } from '@models/ChainId';
 import { truncate } from '@helpers/truncate';
+import { isChainRetired } from 'src/constants';
 
 export function ConfigureButton({ strategy }: { strategy: Strategy }) {
+  const isHidden = isStrategyCancelled(strategy) || isChainRetired(strategy.chainId);
+
   return (
-    <GridItem visibility={isStrategyCancelled(strategy) ? 'hidden' : 'visible'}>
+    <GridItem visibility={isHidden ? 'hidden' : 'visible'}>
       <Flex justify="end">
         <LinkWithQuery href={generateStrategyConfigureUrl(strategy.id, strategy.chainId)}>
           <Button size="xs" variant="ghost" colorScheme="brand" leftIcon={<Icon fontSize="md" as={HiOutlineCube} />}>

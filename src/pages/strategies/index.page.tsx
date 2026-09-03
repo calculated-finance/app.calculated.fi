@@ -1,4 +1,4 @@
-import { Heading, Text, Flex } from '@chakra-ui/react';
+import { Alert, AlertIcon, Flex, Heading, Text } from '@chakra-ui/react';
 import Spinner from '@components/Spinner';
 import { useWallet } from '@hooks/useWallet';
 import { getSidebarLayout } from '@components/Layout';
@@ -65,7 +65,7 @@ function StrategyAccordions() {
             Completed Strategies ({completed.length})
           </Heading>
           <Text pb={2} textStyle="body">
-            Strategies that have fully executed their swaps. Top them up to reactivate them.
+            Strategies that have fully executed their swaps.
           </Text>
         </StrategiesAccordionButton>
         <StrategyAccordionPanel>
@@ -109,6 +109,14 @@ function Page() {
       <Heading size="lg" pb={12}>
         My CALC Strategies
       </Heading>
+
+      <Alert status="warning" mb={8} borderRadius="xl">
+        <AlertIcon />
+        <Text>
+          CALC is retired on Archway and Neutron. Kujira is offline. Cancel available Archway or Neutron strategies to
+          recover their balance. Osmosis remains active.
+        </Text>
+      </Alert>
 
       {!connected ? <ConnectWallet layerStyle="panel" /> : <StrategyAccordions />}
     </>

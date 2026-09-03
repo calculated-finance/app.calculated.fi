@@ -1,10 +1,10 @@
 import { Button, Flex, Grid, GridItem, Heading, HStack, Image, Stack, Text, useDisclosure } from '@chakra-ui/react';
+import { PlusSquareIcon } from '@chakra-ui/icons';
 import Icon from '@components/Icon';
 import { ArrowRightIcon, CloseBoxedIcon } from '@fusion-icons/react/interface';
 import { invalidateStrategies } from '@hooks/useStrategies';
 import { Strategy } from '@models/Strategy';
 
-import { PlusSquareIcon } from '@chakra-ui/icons';
 import {
   getStrategyExecutionInterval,
   getStrategyName,
@@ -16,6 +16,7 @@ import { isDcaPlus } from '@helpers/strategy/isDcaPlus';
 import { fromAtomic } from '@utils/getDenomInfo';
 import React from 'react';
 import { FiExternalLink } from 'react-icons/fi';
+import { isChainRetired } from 'src/constants';
 import CancelStrategyModal from './CancelStrategyModal';
 import DenomIcon from './DenomIcon';
 import LinkWithQuery from './LinkWithQuery';
@@ -118,16 +119,18 @@ function StrategyRow({ strategy }: { strategy: Strategy }) {
         >
           <Flex justifyContent={{ base: 'left', sm: 'end' }} alignItems="center" h="full">
             <Stack direction={{ base: 'column', sm: 'row' }} w="full">
-              <LinkWithQuery href={generateStrategyTopUpUrl(strategy.id, strategy.chainId)}>
-                <Button
-                  size="xs"
-                  variant={{ base: 'outline', sm: 'ghost' }}
-                  leftIcon={<Icon as={PlusSquareIcon} stroke="brand.200" width={4} height={4} />}
-                  width={{ base: 'full', xl: 'initial' }}
-                >
-                  Top up
-                </Button>
-              </LinkWithQuery>
+              {!isChainRetired(strategy.chainId) && (
+                <LinkWithQuery href={generateStrategyTopUpUrl(strategy.id, strategy.chainId)}>
+                  <Button
+                    size="xs"
+                    variant={{ base: 'outline', sm: 'ghost' }}
+                    leftIcon={<Icon as={PlusSquareIcon} stroke="brand.200" width={4} height={4} />}
+                    width={{ base: 'full', xl: 'initial' }}
+                  >
+                    Top up
+                  </Button>
+                </LinkWithQuery>
+              )}
               <CancelButton strategy={strategy} />
             </Stack>
           </Flex>

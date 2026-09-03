@@ -7,8 +7,9 @@ import { useChainClient } from '@hooks/useChainClient';
 import { useChainId } from '@hooks/useChainId';
 import { ChainClient } from './useChainClient/helpers';
 
-const useDenoms = () => {
-  const chainIds = process.env.NEXT_PUBLIC_APP_ENV === 'production' ? MAINNET_CHAINS : CHAINS;
+const useDenoms = (injectedChainIds?: ChainId[]) => {
+  const { chainId } = useChainId();
+  const chainIds = injectedChainIds ?? (process.env.NEXT_PUBLIC_APP_ENV === 'production' ? MAINNET_CHAINS : CHAINS);
   const chainClients = chainIds.map(useChainClient);
 
   const { data: denoms, ...helpers } = useQuery<{ [x: string]: { [x: string]: InitialDenomInfo } }>(
@@ -17,8 +18,8 @@ const useDenoms = () => {
       reduce(
         (
           acc: { [chainId: string]: { [id: string]: InitialDenomInfo } },
-          [chainId, denomsById]: KeyValuePair<ChainId, { [id: string]: InitialDenomInfo }>,
-        ) => ({ ...acc, [chainId]: denomsById }),
+          [resolvedChainId, denomsById]: KeyValuePair<ChainId, { [id: string]: InitialDenomInfo }>,
+        ) => ({ ...acc, [resolvedChainId]: denomsById }),
         {} as { [chainId: string]: { [id: string]: InitialDenomInfo } },
         zip(
           chainIds,
@@ -40,7 +41,6 @@ const useDenoms = () => {
     },
   );
 
-  const { chainId } = useChainId();
   const allDenoms = (denoms ? denoms && mergeAll(values(denoms)) : {}) as { [x: string]: InitialDenomInfo };
 
   return {

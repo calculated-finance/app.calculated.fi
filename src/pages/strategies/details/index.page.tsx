@@ -13,6 +13,7 @@ import {
   Spacer,
   Button,
 } from '@chakra-ui/react';
+import { EditIcon } from '@chakra-ui/icons';
 import CalcIcon from '@components/Icon';
 import Spinner from '@components/Spinner';
 import { CloseBoxedIcon } from '@fusion-icons/react/interface';
@@ -24,7 +25,7 @@ import useStrategyEvents from '@hooks/useStrategyEvents';
 import { StrategyEvent } from '@models/StrategyEvent';
 import ConnectWallet from '@components/ConnectWallet';
 import {
-  PREVIOUS_SWAP_FAILED_DUE_TO_INSUFFICIENT_FUNDS_ERROR_MESSAGE,
+  isChainRetired,
   PREVIOUS_SWAP_FAILED_DUE_TO_PRICE_THRESHOLD,
   PREVIOUS_SWAP_FAILED_DUE_TO_SLIPPAGE_ERROR_MESSAGE,
 } from 'src/constants';
@@ -39,7 +40,6 @@ import { find } from 'rambda';
 import { fromAtomic } from '@utils/getDenomInfo';
 import { getChainMinimumSwapValue, getChainName } from '@helpers/chains';
 import { generateStrategyCustomiseUrl } from '@components/TopPanel/generateStrategyCustomise';
-import { EditIcon } from '@chakra-ui/icons';
 import StrategyPerformance from './StrategyPerformance';
 import StrategyDetails from './StrategyDetails';
 import StrategyComparison from './StrategyComparison';
@@ -90,6 +90,7 @@ function Page() {
   const lastSwapSlippageError = getLatestSwapError(events);
   const expectedSwapValue = fiatPrice && fromAtomic(strategy.initialDenom, getSwapAmount(strategy)) * fiatPrice;
   const minimumSwapValue = getChainMinimumSwapValue(strategy.chainId);
+  const chainIsRetired = isChainRetired(strategy.chainId);
 
   return (
     <>
@@ -126,21 +127,29 @@ function Page() {
         <Alert status="warning" mb={8} borderWidth={1} borderColor="yellow.200">
           <Image mr={4} src="/images/warningIcon.svg" />
           <Text fontSize="sm" mr={4}>
-            {`In order to cover gas costs of swapping on ${getChainName(
-              strategy.chainId,
-            )}, the swap amount of your strategy must be larger than $${minimumSwapValue} USD. Please consider updating the swap amount by editing your strategy.`}
+            {chainIsRetired
+              ? `The swap amount is below the $${minimumSwapValue} USD minimum on ${getChainName(
+                  strategy.chainId,
+                )}. New activity is disabled on this chain. Cancel the strategy to recover its available balance.`
+              : `In order to cover gas costs of swapping on ${getChainName(
+                  strategy.chainId,
+                )}, the swap amount of your strategy must be larger than $${minimumSwapValue} USD. Please consider updating the swap amount by editing your strategy.`}
           </Text>
-          <Spacer />
-          <LinkWithQuery href={generateStrategyCustomiseUrl(strategy.id, strategy.chainId)}>
-            <Button
-              size="xs"
-              variant="ghost"
-              colorScheme="brand"
-              leftIcon={<CalcIcon as={EditIcon} stroke="brand.200" width={4} height={4} />}
-            >
-              Edit
-            </Button>
-          </LinkWithQuery>
+          {!chainIsRetired && (
+            <>
+              <Spacer />
+              <LinkWithQuery href={generateStrategyCustomiseUrl(strategy.id, strategy.chainId)}>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="brand"
+                  leftIcon={<CalcIcon as={EditIcon} stroke="brand.200" width={4} height={4} />}
+                >
+                  Edit
+                </Button>
+              </LinkWithQuery>
+            </>
+          )}
         </Alert>
       )}
       <NextSwapInfo strategy={strategy} />

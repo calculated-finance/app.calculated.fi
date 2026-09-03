@@ -19,7 +19,7 @@ import { fromAtomic } from '@utils/getDenomInfo';
 import { generateStrategyTopUpUrl } from '@components/TopPanel/generateStrategyTopUpUrl';
 import { Strategy } from '@models/Strategy';
 import useStrategyEvents from '@hooks/useStrategyEvents';
-import { DELEGATION_FEE, SWAP_FEE, SWAP_FEE_WS } from 'src/constants';
+import { DELEGATION_FEE, isChainRetired, SWAP_FEE, SWAP_FEE_WS } from 'src/constants';
 import { getPrettyFee } from '@helpers/getPrettyFee';
 import {
   getStrategyType,
@@ -141,10 +141,10 @@ export default function StrategyDetails({ strategy }: { strategy: Strategy }) {
   const { initialDenom, resultingDenom } = strategy;
 
   const strategyType = getStrategyType(strategy);
-  const { pairs } = usePairs();
+  const { pairs } = usePairs(undefined, initialDenom.id);
   const startDate = getStrategyStartDate(strategy, pairs);
   const { data: events } = useStrategyEvents(strategy.id);
-  const showEditButton = !isStrategyCancelled(strategy);
+  const showEditButton = !isStrategyCancelled(strategy) && !isChainRetired(strategy.chainId);
 
   return (
     <GridItem colSpan={[6, null, null, null, 3]}>
@@ -275,19 +275,21 @@ export default function StrategyDetails({ strategy }: { strategy: Strategy }) {
                   {fromAtomic(initialDenom, Number(balance.amount))} {initialDenom.name}
                 </Text>
               </GridItem>
-              <GridItem visibility={isStrategyCancelled(strategy) ? 'hidden' : 'visible'}>
-                <Flex justify="end">
-                  <LinkWithQuery href={generateStrategyTopUpUrl(strategy.id, strategy.chainId)}>
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorScheme="brand"
-                      leftIcon={<CalcIcon as={PlusSquareIcon} stroke="brand.200" width={4} height={4} />}
-                    >
-                      Add more funds
-                    </Button>
-                  </LinkWithQuery>
-                </Flex>
+              <GridItem>
+                {showEditButton && (
+                  <Flex justify="end">
+                    <LinkWithQuery href={generateStrategyTopUpUrl(strategy.id, strategy.chainId)}>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        colorScheme="brand"
+                        leftIcon={<CalcIcon as={PlusSquareIcon} stroke="brand.200" width={4} height={4} />}
+                      >
+                        Add more funds
+                      </Button>
+                    </LinkWithQuery>
+                  </Flex>
+                )}
               </GridItem>
               {Boolean(destinations.length) && <DestinationDetails strategy={strategy} chainId={chainId} />}
             </Grid>

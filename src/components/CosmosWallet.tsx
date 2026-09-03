@@ -61,7 +61,7 @@ function CosmosWallet() {
     <Box>
       <HStack spacing="3">
         {address != null ? (
-          <Popover placement="bottom-start" closeOnBlur isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+          <Popover isLazy placement="bottom-start" closeOnBlur isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
             <PopoverTrigger>
               <Button variant="outline" rightIcon={isOpen ? <Icon as={FiChevronUp} /> : <Icon as={FiChevronDown} />}>
                 {truncate(username ?? address)}

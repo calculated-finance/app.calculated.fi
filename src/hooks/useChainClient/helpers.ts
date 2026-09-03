@@ -23,6 +23,7 @@ export type ChainClient = {
     startAfter?: string,
     allPairs?: Pair[],
   ) => Promise<Pair[]>;
+  fetchPairsForDenom?: (initialDenomId: string) => Promise<Pair[]>;
   fetchTokenBalance: (address: string, tokenId: InitialDenomInfo) => Promise<Coin>;
   fetchBalances: (address: string) => Promise<Coin[]>;
   fetchValidators: () => Promise<{ validators: Validator[] }>;

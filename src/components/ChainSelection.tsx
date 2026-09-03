@@ -14,6 +14,7 @@ import { useChainId } from '@hooks/useChainId';
 import { ChainId } from '@models/ChainId';
 import { useRouter } from 'next/router';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { OFFLINE_CHAINS } from 'src/constants';
 
 const chainSelectionAllowedUrls = [
   '/',
@@ -49,7 +50,6 @@ export function ChainSelection() {
     { id: 'neutron-1', name: 'Neutron', imageSrc: '/images/denoms/neutron.svg', isTestnet: false },
     { id: 'osmo-test-5', name: 'Osmosis', imageSrc: '/images/denoms/osmo.svg', isTestnet: true },
     { id: 'constantine-3', name: 'Archway', imageSrc: '/images/denoms/archway.svg', isTestnet: true },
-    { id: 'pion-1', name: 'Neutron', imageSrc: '/images/denoms/neutron.svg', isTestnet: true },
   ];
 
   const isChainSelectionAllowed = chainSelectionAllowedUrls.includes(router.pathname);
@@ -92,7 +92,9 @@ export function ChainSelection() {
                 key={chain.id}
                 _checked={{ bg: 'blue.500', color: 'navy' }}
                 isChecked={chainId === chain.id}
+                isDisabled={OFFLINE_CHAINS.includes(chain.id as ChainId)}
                 onClick={() => {
+                  if (OFFLINE_CHAINS.includes(chain.id as ChainId)) return;
                   setChain(chain.id as ChainId);
                   onClose();
                 }}
@@ -101,7 +103,7 @@ export function ChainSelection() {
                   <Image src={chain.imageSrc} w={5} />
                   <Text>
                     {chain.name}
-                    {chain.isTestnet ? ' (testnet)' : ''}
+                    {OFFLINE_CHAINS.includes(chain.id as ChainId) ? ' (offline)' : chain.isTestnet ? ' (testnet)' : ''}
                   </Text>
                 </HStack>
               </MenuItemOption>

@@ -67,8 +67,8 @@ function getResultingDenomsFromStrategyType(
 export function AssetsForm() {
   const { connected } = useWallet();
   const { denoms } = useDenoms();
-  const { pairs } = usePairs();
   const [{ value: initialDenom }, initialDenomMeta, initialDenomHelpers] = useField({ name: 'initialDenom' });
+  const { pairs } = usePairs(undefined, initialDenom?.id);
   const [{ value: initialDeposit }] = useField({ name: 'initialDeposit' });
   const [{ value: resultingDenom }, resultingDenomMeta, resultingDenomHelpers] = useField({ name: 'resultingDenom' });
   const [strategyType] = useField({ name: 'strategyType' });

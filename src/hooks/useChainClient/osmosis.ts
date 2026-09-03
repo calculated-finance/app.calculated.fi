@@ -2,7 +2,6 @@ import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import { getChainEndpoint, getOsmosisRouterUrl } from '@helpers/chains';
 import { ChainId } from '@models/ChainId';
 import { InitialDenomInfo, ResultingDenomInfo, fromPartial } from '@utils/DenomInfo';
-import { reduce, values, forEach, join, sort } from 'rambda';
 import { osmosis } from 'osmojs';
 import Long from 'long';
 import { Pair } from '@models/Pair';
@@ -13,65 +12,57 @@ import { ChainClient } from './helpers';
 const fetchDenoms = async (chainId: ChainId): Promise<{ [x: string]: InitialDenomInfo }> => {
   const baseUrl = 'https://raw.githubusercontent.com/osmosis-labs/assetlists/main';
   const response = await fetch(`${baseUrl}/${chainId}/generated/frontend/assetlist.json`);
-  const { assets } = await response.json();
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Osmosis asset list (${response.status})`);
+  }
 
+  const { assets } = await response.json();
   const allOverrides = DENOMS[chainId];
 
-  return reduce(
-    (acc: { [x: string]: InitialDenomInfo }, asset: any) => {
-      const significantFigures = asset.decimals || 6;
+  return assets.reduce((acc: { [x: string]: InitialDenomInfo }, asset: any) => {
+    const denom = asset.coinMinimalDenom;
 
-      const denom = asset.coinMinimalDenom;
-      const overrides = (denom in allOverrides && allOverrides[denom]) || {};
+    acc[denom] = fromPartial({
+      chain: chainId,
+      id: denom,
+      name: asset.symbol,
+      icon: asset.logoURIs?.svg || asset.logoURIs?.png,
+      coingeckoId: asset.coingeckoId || '',
+      significantFigures: asset.decimals || 6,
+      ...(allOverrides[denom] ?? {}),
+    });
 
-      return {
-        ...acc,
-        [denom]: fromPartial({
-          chain: chainId,
-          id: denom,
-          name: asset.symbol,
-          icon: asset.logoURIs?.svg || asset.logoURIs?.png,
-          coingeckoId: asset.coingeckoId || '',
-          significantFigures,
-          ...overrides,
-        }),
-      };
-    },
-    {},
-    assets,
-  );
+    return acc;
+  }, {});
 };
 
 export const osmosisChainClient = async (chainId: ChainId, cosmWasmClient: CosmWasmClient): Promise<ChainClient> => {
   const queryClient = await osmosis.ClientFactory.createRPCQueryClient({
     rpcEndpoint: getChainEndpoint(chainId),
   });
+  let denomsPromise: Promise<{ [x: string]: InitialDenomInfo }> | undefined;
+
+  const getDenoms = () => {
+    if (!denomsPromise) {
+      denomsPromise = fetchDenoms(chainId).catch((error) => {
+        denomsPromise = undefined;
+        throw error;
+      });
+    }
+
+    return denomsPromise;
+  };
 
   return {
-    fetchDenoms: () => fetchDenoms(chainId),
-    fetchPairs: async () => {
-      const denoms = await fetchDenoms(chainId);
-      return values(
-        reduce(
-          (acc: { [x: string]: Pair }, denom: InitialDenomInfo) => {
-            const pairs: { [x: string]: Pair } = {};
-            forEach((otherDenom: InitialDenomInfo) => {
-              if (denom.id !== otherDenom.id) {
-                const key = join(
-                  '-',
-                  sort((a, b) => (a > b ? -1 : 1), [denom.id, otherDenom.id]),
-                );
-                pairs[key] = {
-                  denoms: [denom.id, otherDenom.id],
-                };
-              }
-            }, values(denoms));
-            return { ...acc, ...pairs };
-          },
-          {},
-          values(denoms),
-        ),
-      );
+    fetchDenoms: getDenoms,
+    // Osmosis routes are generated for the selected input denom instead of
+    // materialising every possible pair from the full upstream asset list.
+    fetchPairs: async () => [],
+    fetchPairsForDenom: async (initialDenomId) => {
+      const denomIds = Object.keys(await getDenoms());
+      return denomIds
+        .filter((denomId) => denomId !== initialDenomId)
+        .map((denomId) => ({ denoms: [initialDenomId, denomId] } as Pair));
     },
     fetchTokenBalance: (address: string, denom: InitialDenomInfo) => cosmWasmClient!.getBalance(address, denom.id),
     fetchBalances: async (address: string) => {

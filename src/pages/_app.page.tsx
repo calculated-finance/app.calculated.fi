@@ -1,6 +1,8 @@
 import { Center, ChakraProvider, Heading, Image, Text } from '@chakra-ui/react';
 import { AgreementAcceptanceDetector } from '@components/AgreementAcceptanceDetector';
 import { ChainProvider } from '@components/ChainProvider';
+import { getSidebarLayout } from '@components/Layout';
+import RetirementNotice from '@components/RetirementNotice';
 import { ToastContainer } from '@components/ToastContainer';
 import '@fontsource/karla';
 import { useChainId } from '@hooks/useChainId';
@@ -10,7 +12,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { ReactElement, ReactNode } from 'react';
+import { isChainRetired, RETIRED_ROUTE_PREFIXES } from 'src/constants';
 import theme from 'src/theme';
 import { queryClient } from './queryClient';
 
@@ -27,8 +31,11 @@ Sentry.init({
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { chainId } = useChainId();
+  const { pathname } = useRouter();
+  const isRetiredRoute =
+    isChainRetired(chainId) && RETIRED_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-  const getLayout = Component.getLayout ?? ((page) => page);
+  const getLayout = isRetiredRoute ? getSidebarLayout : Component.getLayout ?? ((page) => page);
 
   return (
     <>
@@ -51,7 +58,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         >
           <ChainProvider>
             <QueryClientProvider client={queryClient}>
-              {getLayout(<Component {...pageProps} />)}
+              {getLayout(isRetiredRoute ? <RetirementNotice /> : <Component {...pageProps} />)}
               <AgreementAcceptanceDetector />
             </QueryClientProvider>
             <ToastContainer />

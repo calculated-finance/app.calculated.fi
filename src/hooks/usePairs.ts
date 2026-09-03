@@ -1,4 +1,4 @@
-import { any, filter } from 'rambda';
+import { filter } from 'rambda';
 import { isDenomVolatile } from '@utils/getDenomInfo';
 import { HydratedPair, Pair } from '@models/Pair';
 import { getDCAContractAddress } from '@helpers/chains';
@@ -10,6 +10,7 @@ import { useCosmWasmClient } from '@hooks/useCosmWasmClient';
 import useDenoms from '@hooks/useDenoms';
 import { useChainClient } from '@hooks/useChainClient';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 const hiddenPairs = [
   JSON.stringify([
@@ -77,16 +78,22 @@ export function getResultingDenoms(pairs: HydratedPair[], initialDenom?: Initial
       );
 }
 
-export default function usePairs(injectedChainId?: ChainId) {
+export default function usePairs(injectedChainId?: ChainId, initialDenomId?: string) {
   const { chainId: currentChainId } = useChainId();
   const chainId = injectedChainId ?? currentChainId;
   const { cosmWasmClient } = useCosmWasmClient(chainId);
-  const { denoms, getDenomById } = useDenoms();
+  const { denoms } = useDenoms([chainId]);
   const chainClient = useChainClient(chainId);
+  const supportsLazyPairs = !!chainClient?.fetchPairsForDenom;
 
   const { data: pairs, ...other } = useQuery<Pair[]>(
-    ['pairs', chainId],
-    () => chainClient!.fetchPairs(chainId, getDCAContractAddress(chainId), cosmWasmClient!),
+    ['pairs', chainId, supportsLazyPairs ? initialDenomId : 'all'],
+    () =>
+      supportsLazyPairs
+        ? initialDenomId
+          ? chainClient!.fetchPairsForDenom!(initialDenomId)
+          : Promise.resolve([])
+        : chainClient!.fetchPairs(chainId, getDCAContractAddress(chainId), cosmWasmClient!),
     {
       enabled: !!chainId && !!cosmWasmClient && !!chainClient,
       staleTime: 1000 * 60 * 30,
@@ -96,18 +103,22 @@ export default function usePairs(injectedChainId?: ChainId) {
     },
   );
 
+  const hydratedPairs = useMemo(() => {
+    const denomsById = denoms?.[chainId];
+    if (!denomsById || !pairs) return undefined;
+
+    return pairs
+      .filter((pair) => isPairVisible(pair.denoms) && pair.denoms.every((denomId) => !!denomsById[denomId]))
+      .map(
+        (pair) =>
+          ({
+            denoms: pair.denoms.map((denomId) => denomsById[denomId]),
+          } as HydratedPair),
+      );
+  }, [chainId, denoms, pairs]);
+
   return {
-    pairs:
-      denoms &&
-      pairs
-        ?.filter((pair) => isPairVisible(pair.denoms) && !any((denom) => denom === undefined, pair.denoms))
-        ?.map(
-          (pair) =>
-            ({
-              denoms: pair.denoms.map((denom) => getDenomById(denom)),
-            } as HydratedPair),
-        )
-        .filter((pair) => pair.denoms.every((denom) => !!denom)),
+    pairs: hydratedPairs,
     ...other,
   };
 }

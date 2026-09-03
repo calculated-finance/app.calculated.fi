@@ -73,13 +73,14 @@ function InitialDenom() {
   const [isMobile] = useMediaQuery('(max-width: 506px)');
   const { denoms, getDenomById, getDenomByName } = useDenoms();
   const { chainId } = useChainId();
-  const { pairs } = usePairs();
 
   const [{ from: initialDenomName, to: resultingDenomName, amount }, setQueryState] = useQueryState();
 
   const [initialDenom, initialDenomMeta, initialDenomHelpers] = useField({ name: 'initialDenom' });
   const [resultingDenom, , resultingDenomHelpers] = useField({ name: 'resultingDenom' });
   const [initialDeposit] = useField<number>({ name: 'initialDeposit' });
+  const selectedInitialDenomId = initialDenom.value?.id ?? getDenomByName(initialDenomName)?.id;
+  const { pairs } = usePairs(undefined, selectedInitialDenomId);
 
   const { fiatPrice } = useFiatPrice(initialDenom.value);
 
@@ -94,25 +95,22 @@ function InitialDenom() {
 
     if (!pairs || denomsAlreadySet) return;
 
-    if (!initialDenomName && !initialDenom.value) {
-      const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-      setQueryState({ from: randomPair.denoms[0].name, to: randomPair.denoms[1].name });
-    } else {
-      const newInitialDenom = getDenomByName(initialDenomName);
+    if (!initialDenomName && !initialDenom.value) return;
 
-      if (!initialDenomAlreadySet) {
-        initialDenomHelpers.setValue(newInitialDenom);
-        setQueryState({ from: newInitialDenom?.name });
-      }
+    const newInitialDenom = getDenomByName(initialDenomName);
 
-      if (!resultingDenomAlreadySet) {
-        const validResultingDenoms = pairs && newInitialDenom ? getResultingDenoms(pairs, newInitialDenom) : [];
-        const newResultingDenom =
-          resultingDenomName && validResultingDenoms.find((d) => toLower(d.name) === toLower(resultingDenomName));
+    if (!initialDenomAlreadySet) {
+      initialDenomHelpers.setValue(newInitialDenom);
+      setQueryState({ from: newInitialDenom?.name });
+    }
 
-        setQueryState({ to: newResultingDenom?.name });
-        resultingDenomHelpers.setValue(newResultingDenom);
-      }
+    if (!resultingDenomAlreadySet) {
+      const validResultingDenoms = pairs && newInitialDenom ? getResultingDenoms(pairs, newInitialDenom) : [];
+      const newResultingDenom =
+        resultingDenomName && validResultingDenoms.find((d) => toLower(d.name) === toLower(resultingDenomName));
+
+      setQueryState({ to: newResultingDenom?.name });
+      resultingDenomHelpers.setValue(newResultingDenom);
     }
   }, [initialDenomName, pairs?.length]);
 
@@ -210,7 +208,6 @@ function SwapDenoms() {
 
 function ResultingDenom() {
   const [isMobile] = useMediaQuery('(max-width: 506px)');
-  const { pairs } = usePairs();
   const { dexFee } = useDexFee();
   const { getDenomById, getDenomByName } = useDenoms();
 
@@ -219,6 +216,7 @@ function ResultingDenom() {
   const {
     values: { initialDenom, initialDeposit, swapAmount },
   } = useFormikContext<FormData>();
+  const { pairs } = usePairs(undefined, initialDenom?.id);
 
   const [{ value: resultingDenomValue, ...resultingDenomField }, resultingDenomMeta, resultingDenomHelpers] = useField({
     name: 'resultingDenom',
@@ -900,7 +898,7 @@ function FeeSection() {
 
 function Form({ formValues }: { formValues: FormData }) {
   const { connected } = useWallet();
-  const { isLoading: isPairsLoading } = usePairs();
+  const { isLoading: isPairsLoading } = usePairs(undefined, formValues.initialDenom?.id);
   const { mutate, isError, error, isLoading } = useCreateStreamingSwap();
   const [isSuccess, setIsSuccess] = useState(false);
   const [, updateQueryState] = useQueryState();

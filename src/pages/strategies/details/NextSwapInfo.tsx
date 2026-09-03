@@ -49,7 +49,7 @@ function Diagram({
 export function NextSwapInfo({ strategy }: { strategy: Strategy }) {
   const { route } = useRoute(coin(strategy.rawData.swap_amount, strategy.initialDenom.id), strategy.resultingDenom);
   const { twap } = useTwapToNow(strategy.initialDenom, strategy.resultingDenom, route || strategy.rawData.route);
-  const { pairs } = usePairs();
+  const { pairs } = usePairs(undefined, strategy.initialDenom.id);
   const priceThreshold = getPriceThreshold(strategy);
 
   const { trigger } = strategy.rawData;
