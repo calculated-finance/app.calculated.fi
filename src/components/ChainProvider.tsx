@@ -14,9 +14,8 @@ import {
   ARCHWAY_MAINNET_RPC,
   ARCHWAY_TESTNET_RPC,
   CHAINS,
-  KUJIRA_MAINNET_RPC,
-  KUJIRA_TESTNET_RPC,
   MAINNET_CHAINS,
+  NEUTRON_MAINNET_RPC,
   OSMOSIS_MAINNET_RPC,
   OSMOSIS_TESTNET_RPC,
 } from 'src/constants';
@@ -52,20 +51,17 @@ export function ChainProvider({ children }: ChildrenProp) {
       endpointOptions={{
         isLazy: true,
         endpoints: {
-          kujira: {
-            rpc: [KUJIRA_MAINNET_RPC],
-          },
           osmosis: {
             rpc: [OSMOSIS_MAINNET_RPC],
           },
           archway: {
             rpc: [ARCHWAY_MAINNET_RPC],
           },
+          neutron: {
+            rpc: [NEUTRON_MAINNET_RPC],
+          },
           ...(process.env.NEXT_PUBLIC_APP_ENV !== 'production'
             ? {
-                kujiratestnet: {
-                  rpc: [KUJIRA_TESTNET_RPC],
-                },
                 osmosistestnet: {
                   rpc: [OSMOSIS_TESTNET_RPC],
                 },

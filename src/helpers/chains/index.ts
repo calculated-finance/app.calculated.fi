@@ -10,9 +10,7 @@ import {
   COSMOS_KIT_NEUTRON_TESTNET,
   COSMOS_KIT_OSMOSIS_MAINNET,
   COSMOS_KIT_OSMOSIS_TESTNET,
-  KUJIRA_MAINNET_RPC,
   NEUTRON_MAINNET_RPC,
-  NEUTRON_TESTNET_RPC,
   OSMOSIS_MAINNET_RPC,
   OSMOSIS_TESTNET_RPC,
 } from 'src/constants';
@@ -25,21 +23,27 @@ export function getGasPrice(chain: ChainId) {
       'kaiyo-1': '0.004ukuji',
       'archway-1': '140000000000aarch',
       'constantine-3': '140000000000aconst',
-      'neutron-1': '0.004untrn',
+      'neutron-1': '0.0053untrn',
       'pion-1': '0.004untrn',
     }[chain],
   );
 }
 
 export function getChainEndpoint(chain: ChainId): string {
+  if (chain === 'kaiyo-1') {
+    throw new Error('Kujira is offline');
+  }
+
+  if (chain === 'pion-1') {
+    throw new Error('Neutron Pion testnet has been decommissioned');
+  }
+
   return {
     'osmosis-1': OSMOSIS_MAINNET_RPC,
     'osmo-test-5': OSMOSIS_TESTNET_RPC,
-    'kaiyo-1': KUJIRA_MAINNET_RPC,
     'archway-1': ARCHWAY_MAINNET_RPC,
     'constantine-3': ARCHWAY_TESTNET_RPC,
     'neutron-1': NEUTRON_MAINNET_RPC,
-    'pion-1': NEUTRON_TESTNET_RPC,
   }[chain];
 }
 

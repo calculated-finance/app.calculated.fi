@@ -93,8 +93,12 @@ export const useChainId = () => {
         }
         setData({ chainId: chain as ChainId, setChain });
       } else if (storedChain) {
-        updateQueryParam(storedChain);
-        setData({ chainId: storedChain, setChain });
+        const supportedStoredChain = CHAINS.includes(storedChain) ? storedChain : ('osmosis-1' as ChainId);
+        if (supportedStoredChain !== storedChain) {
+          updateStores(supportedStoredChain);
+        }
+        updateQueryParam(supportedStoredChain);
+        setData({ chainId: supportedStoredChain, setChain });
       }
       setIsLoading(false);
     }

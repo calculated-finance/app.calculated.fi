@@ -18,7 +18,7 @@ export const useCreateVaultDca = () => {
   const { transactionType } = useStrategyInfo();
   const { calcSigningClient } = useCalcSigningClient();
   const { address } = useWallet();
-  const { fiatPrices } = useFiatPrices();
+  const { fiatPrices } = useFiatPrices([chainId]);
 
   return useMutation<
     Strategy['id'] | undefined,

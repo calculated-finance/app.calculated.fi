@@ -27,7 +27,7 @@ export function ReinvestStrategyDetails({ strategy }: { strategy: Strategy }) {
   const resultingDenom = getStrategyResultingDenom(strategy);
 
   const strategyType = getStrategyType(strategy);
-  const { pairs } = usePairs();
+  const { pairs } = usePairs(undefined, initialDenom.id);
 
   const startDate = getStrategyStartDate(strategy, pairs);
 

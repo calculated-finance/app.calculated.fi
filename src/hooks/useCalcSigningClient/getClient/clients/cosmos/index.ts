@@ -1,6 +1,7 @@
 import { ExecuteMsg } from 'src/interfaces/dca/execute';
 import { ExecuteResult, SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import { ChainConfig } from '@helpers/chains';
+import { ChainId } from '@models/ChainId';
 import { Strategy } from '@models/Strategy';
 import { getStrategyInitialDenom } from '@helpers/strategy';
 import { EncodeObject } from '@cosmjs/proto-signing';
@@ -15,6 +16,13 @@ import { MsgGrant } from 'cosmjs-types/cosmos/authz/v1beta1/tx';
 import { Timestamp } from 'cosmjs-types/google/protobuf/timestamp';
 import { Config } from 'src/interfaces/dca/response/get_config';
 import { toAtomic } from '@utils/getDenomInfo';
+import { isChainRetired, RETIREMENT_ERROR_MESSAGE } from 'src/constants';
+
+function assertChainIsNotRetired(chainId: ChainId) {
+  if (isChainRetired(chainId)) {
+    throw new Error(RETIREMENT_ERROR_MESSAGE);
+  }
+}
 
 function topUpStrategy(
   address: string,
@@ -23,6 +31,8 @@ function topUpStrategy(
   strategy: Strategy,
   topUpAmount: number,
 ): Promise<ExecuteResult> {
+  assertChainIsNotRetired(chainConfig.id);
+
   if (strategy.owner !== address) {
     throw new Error('You are not the owner of this strategy');
   }
@@ -99,6 +109,8 @@ async function createStrategy(
   fee: string | undefined,
   createVaultContext: BuildCreateVaultContext,
 ) {
+  assertChainIsNotRetired(chainConfig.id);
+
   const createVaultMsg = buildCreateVaultMsg(chainConfig, fetchedConfig, createVaultContext);
 
   const msgs: EncodeObject[] = [];

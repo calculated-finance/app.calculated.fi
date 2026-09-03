@@ -75,22 +75,11 @@ function ModalHeader({ isSuccess }: SimpleDcaModalHeaderProps) {
 }
 
 function InitialDenom() {
-  const { pairs } = usePairs();
-  const { getDenomById, denoms } = useDenoms();
   const { chainId } = useChainId();
+  const { getDenomById, denoms } = useDenoms([chainId]);
   const [initialDenom, meta, initialDenomHelpers] = useField({ name: 'initialDenom' });
   const [, , resultingDenomHelpers] = useField({ name: 'resultingDenom' });
   const [isMobile] = useMediaQuery('(max-width: 506px)');
-
-  useEffect(() => {
-    if (!!pairs && pairs.length > 0 && !initialDenom.value) {
-      const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-      initialDenomHelpers.setValue(randomPair.denoms[0]);
-      resultingDenomHelpers.setValue(randomPair.denoms[1]);
-    }
-  });
-
-  if (!pairs) return null;
 
   return (
     <FormControl isInvalid={Boolean(meta.touched && meta.error)}>
@@ -126,7 +115,7 @@ function InitialDenom() {
 function ResultingDenom({ denoms }: { denoms: InitialDenomInfo[] }) {
   const [{ value: resultingDenom }, meta, helpers] = useField({ name: 'resultingDenom' });
   const { chainId } = useChainId();
-  const { getDenomById } = useDenoms();
+  const { getDenomById } = useDenoms([chainId]);
 
   const {
     values: { initialDenom },
@@ -252,10 +241,10 @@ function SimpleDCAInForm({ formValues }: { formValues: SimplifiedDcaInFormData }
   const { connected } = useWallet();
   const { nextStep } = useSteps(simpleDcaInSteps);
   const { mutate, isError, error, isLoading } = useCreateVaultDca();
-  const { pairs } = usePairs();
   const { isPageLoading } = usePageLoad();
   const [isSuccess, setIsSuccess] = useState(false);
   const [{ value: initialDenom }] = useField({ name: 'initialDenom' });
+  const { pairs } = usePairs(undefined, initialDenom?.id);
   const [, initialDepositMeta] = useField({ name: 'initialDeposit' });
   const [{ value: resultingDenom }] = useField({ name: 'resultingDenom' });
   const [, routeMeta] = useField({ name: 'route' });

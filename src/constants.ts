@@ -2,6 +2,18 @@ import { ChainId } from '@models/ChainId';
 
 export const HOTJAR_SITE_ID = process.env.NEXT_PUBLIC_HOTJAR_SITE_ID;
 
+export const RETIRED_CHAINS = ['kaiyo-1', 'archway-1', 'constantine-3', 'neutron-1'] as ChainId[];
+export const RETIRED_ROUTE_PREFIXES = [
+  '/create-strategy',
+  '/strategies/configure',
+  '/strategies/customise',
+  '/strategies/top-up',
+];
+export const RETIREMENT_ERROR_MESSAGE =
+  'CALC is retired on this chain. New strategies and additional deposits are disabled.';
+
+export const isChainRetired = (chainId: ChainId | undefined) => Boolean(chainId && RETIRED_CHAINS.includes(chainId));
+
 // Generic constants (not environment specific)
 export const CREATE_VAULT_FEE = 0.1; // 10c
 export const CANCEL_VAULT_FEE = 0.5; // $1
@@ -53,7 +65,6 @@ export const COIN_DECIMAL_LIMIT = 6;
 export const COIN_DECIMAL_LIMIT_TO_SHOW_2_DECIMALS = 1;
 
 export const COSMOS_KIT_KUJIRA_MAINNET = 'kujira';
-export const COSMOS_KIT_KUJIRA_TESTNET = 'kujiratestnet';
 export const COSMOS_KIT_OSMOSIS_MAINNET = 'osmosis';
 export const COSMOS_KIT_OSMOSIS_TESTNET = 'osmosistestnet';
 export const COSMOS_KIT_ARCHWAY_MAINNET = 'archway';
@@ -87,15 +98,13 @@ export const contentData = {
 export const KUJIRA_CHAINS = ['kaiyo-1'] as ChainId[];
 export const ARCHWAY_CHAINS = ['archway-1', 'constantine-3'] as ChainId[];
 export const OSMOSIS_CHAINS = ['osmosis-1', 'osmo-test-5'] as ChainId[];
-export const NEUTRON_CHAINS = ['neutron-1', 'pion-1'] as ChainId[];
-export const CHAINS = [...KUJIRA_CHAINS, ...OSMOSIS_CHAINS, ...ARCHWAY_CHAINS, ...NEUTRON_CHAINS] as ChainId[];
-export const MAINNET_CHAINS = ['kaiyo-1', 'osmosis-1', 'archway-1', 'neutron-1'] as ChainId[];
+export const NEUTRON_CHAINS = ['neutron-1'] as ChainId[];
+export const OFFLINE_CHAINS = ['kaiyo-1'] as ChainId[];
+export const CHAINS = [...OSMOSIS_CHAINS, ...ARCHWAY_CHAINS, ...NEUTRON_CHAINS] as ChainId[];
+export const MAINNET_CHAINS = ['osmosis-1', 'archway-1', 'neutron-1'] as ChainId[];
 
 export const OSMOSIS_MAINNET_RPC = process.env.NEXT_PUBLIC_OSMOSIS_MAINNET_RPC!;
 export const OSMOSIS_TESTNET_RPC = process.env.NEXT_PUBLIC_OSMOSIS_TESTNET_RPC!;
-export const KUJIRA_MAINNET_RPC = process.env.NEXT_PUBLIC_KUJIRA_MAINNET_RPC!;
-export const KUJIRA_TESTNET_RPC = process.env.NEXT_PUBLIC_KUJIRA_TESTNET_RPC!;
 export const ARCHWAY_MAINNET_RPC = process.env.NEXT_PUBLIC_ARCHWAY_MAINNET_RPC!;
 export const ARCHWAY_TESTNET_RPC = process.env.NEXT_PUBLIC_ARCHWAY_TESTNET_RPC!;
 export const NEUTRON_MAINNET_RPC = process.env.NEXT_PUBLIC_NEUTRON_MAINNET_RPC!;
-export const NEUTRON_TESTNET_RPC = process.env.NEXT_PUBLIC_NEUTRON_TESTNET_RPC!;

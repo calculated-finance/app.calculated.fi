@@ -13,7 +13,7 @@ export default function useTwapToNow(
 ) {
   const config = useConfig();
   const { cosmWasmClient } = useCosmWasmClient();
-  const { pairs } = usePairs();
+  const { pairs } = usePairs(undefined, initialDenom?.id);
 
   const pair = pairs && resultingDenom && initialDenom ? findPair(pairs, resultingDenom, initialDenom) : null;
 

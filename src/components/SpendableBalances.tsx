@@ -8,9 +8,11 @@ import { useDenom } from '@hooks/useDenom/useDenom';
 import { truncate } from '@helpers/truncate';
 import useDenoms from '@hooks/useDenoms';
 import useFiatPrices from '@hooks/useFiatPrices';
+import { useChainId } from '@hooks/useChainId';
 
 function CoinBalance({ balance }: { balance: Coin }) {
-  const { getDenomById } = useDenoms();
+  const { chainId } = useChainId();
+  const { getDenomById } = useDenoms([chainId]);
   const initialDenomInfo = getDenomById(balance.denom);
   return (
     initialDenomInfo && (
@@ -88,9 +90,10 @@ export function BalanceList({ balances = [] }: { balances: Coin[] | undefined })
 }
 
 export function SpendableBalances() {
+  const { chainId } = useChainId();
   const { balances } = useBalances();
-  const { getDenomById } = useDenoms();
-  const { fiatPrices } = useFiatPrices();
+  const { getDenomById } = useDenoms([chainId]);
+  const { fiatPrices } = useFiatPrices([chainId]);
 
   if (!fiatPrices || !balances) return null;
 
